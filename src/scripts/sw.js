@@ -46,7 +46,6 @@ registerRoute(
   }),
 );
 
-// Cache API dari Dicoding
 registerRoute(
   ({ url }) => url.origin === 'https://story-api.dicoding.dev',
   new NetworkFirst({
@@ -98,15 +97,6 @@ self.addEventListener('notificationclick', (event) => {
 
   event.waitUntil(promiseChain);
 });
-
-precacheAndRoute([
-  { url: '/index.html', revision: '1' },
-  { url: '/', revision: '1' },
-  { url: '/icons/icon-192x192.png', revision: '1' },
-  { url: '/icons/icon-512x512.png', revision: '1' },
-  { url: '/styles/main.css', revision: '1' },
-]);
-
 
 registerRoute(
   ({ request }) => request.mode === 'navigate',
