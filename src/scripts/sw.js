@@ -98,6 +98,7 @@ self.addEventListener('notificationclick', (event) => {
   event.waitUntil(promiseChain);
 });
 
+
 registerRoute(
   ({ request }) => request.mode === 'navigate',
   new NetworkFirst({
