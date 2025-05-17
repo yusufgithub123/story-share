@@ -2,7 +2,7 @@
   "name": "StoryShare - Aplikasi Berbagi Cerita",
   "short_name": "StoryShare",
   "description": "Aplikasi berbagi cerita dengan gambar dan lokasi",
-  "start_url": "/index.html",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#1E88E5",
   "theme_color": "#1E88E5",

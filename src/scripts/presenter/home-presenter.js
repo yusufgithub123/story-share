@@ -11,6 +11,8 @@ class HomePresenter {
     try {
       this._view.showLoading();
 
+      let stories = [];
+
       if (isOnline()) {
         const token = localStorage.getItem('token');
 
@@ -19,55 +21,50 @@ class HomePresenter {
           return;
         }
 
+        // Ambil data dari API
         const response = await StoryApi.getAllStories(token, 1, 15, 1);
 
-        if (!response.error) {
-          // Hapus data lama
+        if (response && !response.error) {
+          stories = response.listStory;
+
+          // Sync: hapus data lama dari IndexedDB
           const oldStories = await getStories();
-          if (oldStories && oldStories.length > 0) {
-            await Promise.all(oldStories.map(story => deleteStory(story.id)));
+          if (oldStories.length > 0) {
+            await Promise.all(oldStories.map((story) => deleteStory(story.id)));
           }
 
-          // Simpan data baru
-          const stories = response.listStory;
-          await Promise.all(stories.map(story => saveStory(story)));
+          // Simpan data baru ke IndexedDB
+          await Promise.all(stories.map((story) => saveStory(story)));
 
           this._view.showStories(stories);
+          this._view.showOfflineNotification(false);
         } else {
-          // Jika error dari API, coba tampilkan dari IndexedDB
-          const stories = await getStories();
-          if (stories && stories.length > 0) {
-            this._view.showStories(stories);
-            this._view.showOfflineNotification(true);
-          } else {
-            this._view.showError(response.message);
-          }
+          throw new Error(response.message);
         }
       } else {
-        // Mode offline
-        const stories = await getStories();
+        // Mode offline: ambil dari IndexedDB
+        stories = await getStories();
 
-        if (stories && stories.length > 0) {
+        if (stories.length > 0) {
           this._view.showStories(stories);
           this._view.showOfflineNotification(true);
         } else {
-          this._view.showError('Tidak ada cerita tersimpan. Harap sambungkan ke internet.');
-          this._view.showOfflineNotification(true);
+          throw new Error('Tidak ada cerita tersimpan. Harap sambungkan ke internet.');
         }
       }
     } catch (error) {
-      console.error(error);
-      this._view.showError('Error saat memuat cerita');
+      console.error('Gagal memuat cerita:', error.message);
+      this._view.showError('Gagal memuat cerita. Periksa koneksi atau coba lagi.');
 
-      // Coba ambil dari IndexedDB jika gagal
+      // Coba ambil dari IndexedDB sebagai fallback
       try {
         const stories = await getStories();
-        if (stories && stories.length > 0) {
+        if (stories.length > 0) {
           this._view.showStories(stories);
           this._view.showOfflineNotification(true);
         }
       } catch (dbError) {
-        console.error('Error accessing IndexedDB:', dbError);
+        console.error('Gagal mengakses IndexedDB:', dbError.message);
       }
     }
   }
